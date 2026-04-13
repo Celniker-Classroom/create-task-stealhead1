@@ -1,3 +1,8 @@
+<!-- The h1 element acts as a tittle, the container element is made
+ to organize everything, so is the controls element. The field element
+ will have cells created by javascript code using createElement and 
+ appendChild. The play button starts the game, and score and high
+ score update as the game is played -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,7 +12,14 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Your html goes here...</h1>
-    <br>See the <a href="README.md">README</a> for project details
+    <h1>Snake</h1>
+    <div id="container">
+        <div id="field"></div>
+        <div id="controls">
+            <button type="button" id="start">Play</button>
+            <p id="score">Score: </p>
+            <p id="highScore">High Score: </p>
+        </div>
+    </div>
 </body>
 </html>

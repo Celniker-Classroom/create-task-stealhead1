@@ -1,1 +1,58 @@
 /* Add Global styles here */
+* {
+    box-sizing: border-box;
+}
+
+#field{
+    height: 350px;
+    width: 350px;
+    border: solid black 1px;
+    display:flex;
+    flex-direction: column;
+}
+#start{
+    display: block;
+    width: 100%;
+}
+#container{
+    display: inline-flex;
+    align-items: flex-start;
+    width: 400px;
+    height: 350px;
+    border: solid black 1px;
+}
+#controls{
+    display: flex;
+    flex-direction: column;
+    /* align-items: left; */
+    /* justify-content: flex-start; */
+    /* gap: 10px;
+    padding: 10px; */
+}
+#score{
+    border: solid black 1px;
+    width: 100%;
+    text-align: left;
+    margin: 0;
+    padding: 4px 0;
+}
+#highScore{
+    border: solid black 1px;
+    width: 100%;
+    text-align: left;
+    margin: 0;
+    padding: 4px 0;
+}
+
+.rows{
+    height: 12.5%;
+    width: 100%;
+    display:flex;
+    flex-direction: row;
+    border: solid black 1px;
+}
+.cell{
+    width: 12.5%;
+    height:100%;
+    border: solid black 1px;
+}
