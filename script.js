@@ -124,6 +124,8 @@ function startGame() {
     applePos[1] = 4;
     updateField();
     document.getElementById("start").disabled = true;
+    currentDirection = 'd';
+    lastDirection = 'd';
     gameRunning = setInterval(function () { moveSnake(currentDirection) }, 100);
 }
 
