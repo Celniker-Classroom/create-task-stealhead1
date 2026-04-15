@@ -45,14 +45,12 @@
 }
 
 .rows{
-    height: 12.5%;
     width: 100%;
     display:flex;
     flex-direction: row;
     border: solid black 1px;
 }
 .cell{
-    width: 12.5%;
     height:100%;
     border: solid black 1px;
 }
