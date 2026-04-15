@@ -10,6 +10,7 @@ let appleRemoved = false;
 var gameRunning;
 var gameOverCheck = false;
 let highScore;
+let removed;
 const moveMapping = [['w', 'ArrowUp', 0, -1, 's', 'ArrowDown'], ['s', 'ArrowDown', 0, 1, 'w', 'ArrowUp'], ['a', 'ArrowLeft', -1, 0, 'd', 'ArrowRight'], ['d', 'ArrowRight', 1, 0, 'a', 'ArrowLeft']];
 //gets cell by position to avoid typing long pieces of code
 function getCell(x, y) {
@@ -36,22 +37,9 @@ function createField() {
     }
 
 }
-function gameOver() {
-    clearInterval(gameRunning);
-    for (let k = 0; k < snakeLength; k++) {
-        getCell(snakePos[k][0], snakePos[k][1]).style.backgroundColor = 'white';
-    }
-    getCell(applePos[0], applePos[1]).style.backgroundColor = 'white';
-    document.getElementById("start").disabled = false;
-    if (highScore === undefined || snakeLength > highScore) {
-        highScore = snakeLength - 5;
-        document.getElementById("highScore").textContent = "High Score: " + String(highScore);
-    }
-    gameOverCheck = true;
-}
 function checkAhead(ahead) {
     if (ahead[0] < 1 || ahead[0] > fieldLength || ahead[1] < 1 || ahead[1] > fieldWidth) {
-        gameOver();
+        gameOverCheck = true;
         return false;
     }
     if (getCell(ahead[0], ahead[1]).style.backgroundColor == 'red') {
@@ -67,19 +55,38 @@ function checkAhead(ahead) {
         return true;
     }
     else if (getCell(ahead[0], ahead[1]).style.backgroundColor == 'green') {
-        gameOver();
+        gameOverCheck = true;
     }
     return false;
 }
-function updateField(removedSnake) {
-    if (removedSnake) {
-        getCell(removedSnake[0], removedSnake[1]).style.backgroundColor = 'white';
+function updateField(isGameOver) {
+    if (!isGameOver) {
+        if (removed) {
+            getCell(removed[0], removed[1]).style.backgroundColor = 'white';
+        }
+        for (let i = 0; i < snakeLength; i++) {
+            getCell(snakePos[i][0], snakePos[i][1]).style.backgroundColor = 'green';
+            if (i == snakeLength - 1) {
+                getCell(snakePos[i][0], snakePos[i][1]).style.backgroundColor = 'darkgreen';
+            }
+        }
+        getCell(applePos[0], applePos[1]).style.backgroundColor = 'red';
+        document.getElementById("score").textContent = "Score: " + String(snakeLength - 5);
     }
-    for (i = 0; i < snakeLength; i++) {
-        getCell(snakePos[i][0], snakePos[i][1]).style.backgroundColor = 'green';
+    if (isGameOver) {
+        clearInterval(gameRunning);
+        for (let k = 0; k < snakePos.length; k++) {
+            getCell(snakePos[k][0], snakePos[k][1]).style.backgroundColor = 'white';
+        }
+        getCell(applePos[0], applePos[1]).style.backgroundColor = 'white';
+        document.getElementById("start").disabled = false;
+        if (highScore === undefined || snakeLength > highScore) {
+            highScore = snakeLength - 5;
+            document.getElementById("highScore").textContent = "High Score: " + String(highScore);
+        }
+        snakePos.length = 0;
+        gameOverCheck = true;
     }
-    getCell(applePos[0], applePos[1]).style.backgroundColor = 'red';
-    document.getElementById("score").textContent = "Score: " + String(snakeLength - 5);
 }
 function chooseDirection(input) {
     for (let i = 0; i < moveMapping.length; i++) {
@@ -98,28 +105,27 @@ function moveSnake(direction) {
     const currentHead = snakePos[snakeLength - 1];
     const nextHead = [currentHead[0] + move[0], currentHead[1] + move[1]];
     const appleEaten = checkAhead(nextHead);
-    if (gameOverCheck) {
-        return;
-    }
+    if (!gameOverCheck) {
     snakePos[snakeLength] = nextHead;
-    var removed = null;
+    removed = null;
     if (!appleEaten) {
         removed = snakePos[0];
         snakePos.splice(0, 1);
     } else {
         snakeLength++;
     }
-    updateField(removed);
+    }  
+    updateField(gameOverCheck);
 }
 function startGame() {
     snakeLength = 5;
     gameOverCheck = false;
-    for (i = 0; i < snakeLength; i++) {
+    for (let i = 0; i < snakeLength; i++) {
         snakePos[i] = [2, 6];
     }
     applePos[0] = 10;
     applePos[1] = 6;
-    updateField();
+    updateField(false);
     document.getElementById("start").disabled = true;
     currentDirection = 'd';
     lastDirection = 'd';
