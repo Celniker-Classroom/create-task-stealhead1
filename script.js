@@ -8,7 +8,6 @@ let currentDirection = 'd';
 let lastDirection = 'd';
 let appleRemoved = false;
 var gameRunning;
-var gameOverCheck = false;
 let highScore;
 let removed;
 //maps movement to directions, used later
@@ -45,8 +44,8 @@ function checkAhead(ahead) {
     removed = null;
     //checks if next move makes snake out of bounds, sets gameover if true
     if (ahead[0] < 1 || ahead[0] > fieldLength || ahead[1] < 1 || ahead[1] > fieldWidth) {
-        gameOverCheck = true;
-        return false;
+        updateField(true);
+        return;
     }
     //checks if next move is an apple, grows snake and regenerates apple if true
     if (getCell(ahead[0], ahead[1]).style.backgroundColor == 'red') {
@@ -61,11 +60,13 @@ function checkAhead(ahead) {
         }
         snakeLength++;
         snakePos.push(ahead);
-        return true;
+        updateField(false);
+        return;
     }
     //checks if next move is back in the snake
     else if (getCell(ahead[0], ahead[1]).style.backgroundColor == 'green') {
-        gameOverCheck = true;
+        updateField(true);
+        return;
     }
     //if not game over or apple, just extends the snake and removes the end
     else {
@@ -73,7 +74,7 @@ function checkAhead(ahead) {
         snakePos.splice(0, 1);
     }
     snakePos.push(ahead);
-    return false;
+    updateField(false);
 }
 
 function updateField(isGameOver) {
@@ -104,7 +105,6 @@ function updateField(isGameOver) {
                 document.getElementById("highScore").textContent = "High Score: " + String(highScore);
             }
             snakePos.length = 0;
-            gameOverCheck = true;
         }
     }
 //checks input and compares it to move mapping, uses last direction if move isn't valid
@@ -120,18 +120,13 @@ function chooseDirection(input) {
 //combination of all function, first finds the next move, then checks ahead of the move, then updates the field.
 function moveSnake(direction) {
     var move = chooseDirection(direction);
-    if (move === true) {
-        move = chooseDirection(lastDirection);
-    }
     const currentHead = snakePos[snakeLength - 1];
     const nextHead = [currentHead[0] + move[0], currentHead[1] + move[1]];
-    const appleEaten = checkAhead(nextHead);
-    updateField(gameOverCheck);
+    checkAhead(nextHead);
 }
 //starts the game by reseting snakeLength, game over, snake and apple positions, then starts game loop
 function startGame() {
     snakeLength = 5;
-    gameOverCheck = false;
     for (let i = 0; i < snakeLength; i++) {
         snakePos[i] = [2, 6];
     }
