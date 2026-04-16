@@ -67,14 +67,17 @@ function checkAhead(ahead) {
     else if (getCell(ahead[0], ahead[1]).style.backgroundColor == 'green') {
         gameOverCheck = true;
     }
-    else{
+    //if not game over or apple, just extends the snake and removes the end
+    else {
         removed = snakePos[0];
         snakePos.splice(0, 1);
     }
     snakePos.push(ahead);
     return false;
 }
+
 function updateField(isGameOver) {
+    //if the game isn't over, use apple and snake positions to color the squares, and updates the score
     if (!isGameOver) {
         if (removed) {
             getCell(removed[0], removed[1]).style.backgroundColor = 'white';
@@ -87,22 +90,24 @@ function updateField(isGameOver) {
         }
         getCell(applePos[0], applePos[1]).style.backgroundColor = 'red';
         document.getElementById("score").textContent = "Score: " + String(snakeLength - 5);
-    }
-    if (isGameOver) {
-        clearInterval(gameRunning);
-        for (let k = 0; k < snakePos.length; k++) {
-            getCell(snakePos[k][0], snakePos[k][1]).style.backgroundColor = 'white';
+        //if the game is over, clear all squares, allow the start button to be pressed, and update high score if needed
+        if (isGameOver) {
+            clearInterval(gameRunning);
+            for (let k = 0; k < snakePos.length; k++) {
+                getCell(snakePos[k][0], snakePos[k][1]).style.backgroundColor = 'white';
+            }
+            getCell(applePos[0], applePos[1]).style.backgroundColor = 'white';
+            document.getElementById("start").disabled = false;
+            if (highScore === undefined || snakeLength > highScore) {
+                highScore = snakeLength - 5;
+                document.getElementById("highScore").textContent = "High Score: " + String(highScore);
+            }
+            snakePos.length = 0;
+            gameOverCheck = true;
         }
-        getCell(applePos[0], applePos[1]).style.backgroundColor = 'white';
-        document.getElementById("start").disabled = false;
-        if (highScore === undefined || snakeLength > highScore) {
-            highScore = snakeLength - 5;
-            document.getElementById("highScore").textContent = "High Score: " + String(highScore);
-        }
-        snakePos.length = 0;
-        gameOverCheck = true;
     }
 }
+//checks input and compares it to move mapping, uses last direction if move isn't valid
 function chooseDirection(input) {
     for (let i = 0; i < moveMapping.length; i++) {
         if ((input == moveMapping[i][0] || input == moveMapping[i][1]) && (lastDirection != moveMapping[i][4] && lastDirection != moveMapping[i][5])) {
@@ -112,6 +117,7 @@ function chooseDirection(input) {
     }
     return chooseDirection(lastDirection);
 }
+//combination of all function, first finds the next move, then checks ahead of the move, then updates the field.
 function moveSnake(direction) {
     var move = chooseDirection(direction);
     if (move === true) {
@@ -122,6 +128,7 @@ function moveSnake(direction) {
     const appleEaten = checkAhead(nextHead);
     updateField(gameOverCheck);
 }
+//starts the game by reseting snakeLength, game over, snake and apple positions, then starts game loop
 function startGame() {
     snakeLength = 5;
     gameOverCheck = false;
