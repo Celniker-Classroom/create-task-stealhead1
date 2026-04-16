@@ -11,11 +11,13 @@ var gameRunning;
 var gameOverCheck = false;
 let highScore;
 let removed;
+//maps movement to directions, used later
 const moveMapping = [['w', 'ArrowUp', 0, -1, 's', 'ArrowDown'], ['s', 'ArrowDown', 0, 1, 'w', 'ArrowUp'], ['a', 'ArrowLeft', -1, 0, 'd', 'ArrowRight'], ['d', 'ArrowRight', 1, 0, 'a', 'ArrowLeft']];
 //gets cell by position to avoid typing long pieces of code
 function getCell(x, y) {
     return document.querySelector('div.cell[position="[' + String(x) + ',' + String(y) + ']"]');
 }
+//ai was used to debug this function when I accidently used i in the j for loop
 function createField() {
     //generates rows and makes them children of field
     for (let i = 1; i <= fieldWidth; i++) {
@@ -37,11 +39,16 @@ function createField() {
     }
 
 }
+//ai used for debugging when the getCell function returned null when wall 
+// and snake checks were one, so syntax error happened
 function checkAhead(ahead) {
+    removed = null;
+    //checks if next move makes snake out of bounds, sets gameover if true
     if (ahead[0] < 1 || ahead[0] > fieldLength || ahead[1] < 1 || ahead[1] > fieldWidth) {
         gameOverCheck = true;
         return false;
     }
+    //checks if next move is an apple, grows snake and regenerates apple if true
     if (getCell(ahead[0], ahead[1]).style.backgroundColor == 'red') {
         applePos.length = 0;
         let validPosition = false;
@@ -52,11 +59,19 @@ function checkAhead(ahead) {
                 validPosition = true;
             }
         }
+        snakeLength++;
+        snakePos.push(ahead);
         return true;
     }
+    //checks if next move is back in the snake
     else if (getCell(ahead[0], ahead[1]).style.backgroundColor == 'green') {
         gameOverCheck = true;
     }
+    else{
+        removed = snakePos[0];
+        snakePos.splice(0, 1);
+    }
+    snakePos.push(ahead);
     return false;
 }
 function updateField(isGameOver) {
@@ -105,16 +120,6 @@ function moveSnake(direction) {
     const currentHead = snakePos[snakeLength - 1];
     const nextHead = [currentHead[0] + move[0], currentHead[1] + move[1]];
     const appleEaten = checkAhead(nextHead);
-    if (!gameOverCheck) {
-    snakePos[snakeLength] = nextHead;
-    removed = null;
-    if (!appleEaten) {
-        removed = snakePos[0];
-        snakePos.splice(0, 1);
-    } else {
-        snakeLength++;
-    }
-    }  
     updateField(gameOverCheck);
 }
 function startGame() {
