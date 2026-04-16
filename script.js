@@ -90,6 +90,7 @@ function updateField(isGameOver) {
         }
         getCell(applePos[0], applePos[1]).style.backgroundColor = 'red';
         document.getElementById("score").textContent = "Score: " + String(snakeLength - 5);
+    }
         //if the game is over, clear all squares, allow the start button to be pressed, and update high score if needed
         if (isGameOver) {
             clearInterval(gameRunning);
@@ -106,7 +107,6 @@ function updateField(isGameOver) {
             gameOverCheck = true;
         }
     }
-}
 //checks input and compares it to move mapping, uses last direction if move isn't valid
 function chooseDirection(input) {
     for (let i = 0; i < moveMapping.length; i++) {
