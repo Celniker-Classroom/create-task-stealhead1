@@ -100,7 +100,7 @@ function updateField(isGameOver) {
             }
             getCell(applePos[0], applePos[1]).style.backgroundColor = 'white';
             document.getElementById("start").disabled = false;
-            if (highScore === undefined || snakeLength > highScore) {
+            if (highScore === undefined || (snakeLength-5) > highScore) {
                 highScore = snakeLength - 5;
                 document.getElementById("highScore").textContent = "High Score: " + String(highScore);
             }
