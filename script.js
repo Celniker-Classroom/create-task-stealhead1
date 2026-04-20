@@ -78,7 +78,6 @@ function checkAhead(ahead) {
 }
 
 function updateField(isGameOver) {
-    //if the game isn't over, use apple and snake positions to color the squares, and updates the score
     if (!isGameOver) {
         if (removed) {
             getCell(removed[0], removed[1]).style.backgroundColor = 'white';
@@ -92,7 +91,6 @@ function updateField(isGameOver) {
         getCell(applePos[0], applePos[1]).style.backgroundColor = 'red';
         document.getElementById("score").textContent = "Score: " + String(snakeLength - 5);
     }
-        //if the game is over, clear all squares, allow the start button to be pressed, and update high score if needed
         if (isGameOver) {
             clearInterval(gameRunning);
             for (let k = 0; k < snakePos.length; k++) {
