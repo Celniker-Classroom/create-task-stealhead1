@@ -10,11 +10,28 @@ let appleRemoved = false;
 var gameRunning;
 let highScore;
 let removed;
+let appleNumber;
 //maps movement to directions, used later
 const moveMapping = [['w', 'ArrowUp', 0, -1, 's', 'ArrowDown'], ['s', 'ArrowDown', 0, 1, 'w', 'ArrowUp'], ['a', 'ArrowLeft', -1, 0, 'd', 'ArrowRight'], ['d', 'ArrowRight', 1, 0, 'a', 'ArrowLeft']];
 //gets cell by position to avoid typing long pieces of code
 function getCell(x, y) {
     return document.querySelector('div.cell[position="[' + String(x) + ',' + String(y) + ']"]');
+}
+//apple generation system to handle multiple apples
+function generateApples(ahead){
+    //checks if all apples have been generates
+    while (applePos.length < appleNumber){
+        //generates new coordinates
+        let appleX = Math.floor(Math.random() * fieldLength) + 1;
+        let appleY = Math.floor(Math.random() * fieldWidth) + 1;
+        //checks for invalid position, sees if apple is on apple, snake, or ahead
+        const onSnake = snakePos.some((pos) => pos[0] == appleX && pos[1] == appleY);
+        const onAhead = (ahead[0] == appleX && ahead[1] == appleY);
+        const onApple = applePos.some((pos) => pos[0] == appleX && pos[1] == appleY)
+        if (!onSnake && !onAhead && !onApple){
+            applePos[applePos.length] = [appleX, appleY];
+        }
+    }
 }
 //ai was used to debug this function when I accidently used i in the j for loop
 function createField() {
@@ -49,22 +66,18 @@ function checkAhead(ahead) {
     }
     //checks if next move is an apple, grows snake and regenerates apple if true
     if (getCell(ahead[0], ahead[1]).style.backgroundColor == 'red') {
-        applePos.length = 0;
-        let validPosition = false;
-        while (!validPosition) {
-            applePos[0] = Math.floor(Math.random() * fieldLength) + 1;
-            applePos[1] = Math.floor(Math.random() * fieldWidth) + 1;
-            if (!(snakePos.some((pos) => pos[0] == applePos[0] && pos[1] == applePos[1])) && (applePos[0] != ahead[0] || applePos[1] != ahead[1])) {
-                validPosition = true;
-            }
-        }
+        //finds index of apple hit and removes it
+        let appleRemove = applePos.findIndex((apple) => apple[0] == ahead[0] && apple[1] == ahead[1]);
+        applePos.splice(appleRemove,1);
+        //regenerates apples and increases length of snake
+        generateApples(ahead);
         snakeLength++;
         snakePos.push(ahead);
         updateField(false);
         return;
     }
-    //checks if next move is back in the snake
-    else if (getCell(ahead[0], ahead[1]).style.backgroundColor == 'green') {
+    //checks if next move is back in the snake, excluding the tail
+    else if (snakePos.some((pos, index) => index !==0 && ahead[0] == pos[0] && ahead[1] == pos[1])) {
         updateField(true);
         return;
     }
@@ -73,30 +86,30 @@ function checkAhead(ahead) {
         removed = snakePos[0];
         snakePos.splice(0, 1);
     }
+    //moves snake forward if move is completely valid
     snakePos.push(ahead);
     updateField(false);
 }
 
 function updateField(isGameOver) {
+    //checks if game isn't over, then continues game
     if (!isGameOver) {
+        //recolors removed part of snake to white
         if (removed) {
             getCell(removed[0], removed[1]).style.backgroundColor = 'white';
         }
-        for (let i = 0; i < snakeLength; i++) {
-            getCell(snakePos[i][0], snakePos[i][1]).style.backgroundColor = 'green';
-            if (i == snakeLength - 1) {
-                getCell(snakePos[i][0], snakePos[i][1]).style.backgroundColor = 'darkgreen';
-            }
-        }
-        getCell(applePos[0], applePos[1]).style.backgroundColor = 'red';
+        //loops through each snake position, coloring them green and the head dark green
+        snakePos.forEach((pos) => getCell(pos[0],pos[1]).style.backgroundColor = 'green')
+        getCell(snakePos[snakeLength - 1][0], snakePos[snakeLength -1][1]).style.backgroundColor = 'darkgreen';
+        //colors each apple red
+        applePos.forEach((apple) => getCell(apple[0], apple[1]).style.backgroundColor = 'red');
         document.getElementById("score").textContent = "Score: " + String(snakeLength - 5);
     }
         if (isGameOver) {
             clearInterval(gameRunning);
-            for (let k = 0; k < snakePos.length; k++) {
-                getCell(snakePos[k][0], snakePos[k][1]).style.backgroundColor = 'white';
-            }
-            getCell(applePos[0], applePos[1]).style.backgroundColor = 'white';
+            snakePos.forEach((pos) => getCell(pos[0], pos[1]).style.backgroundColor = 'white')
+            applePos.forEach((pos) => getCell(pos[0], pos[1]).style.backgroundColor = 'white')
+            applePos.length = 0;
             document.getElementById("start").disabled = false;
             if (highScore === undefined || (snakeLength-5) > highScore) {
                 highScore = snakeLength - 5;
@@ -107,16 +120,19 @@ function updateField(isGameOver) {
     }
 //checks input and compares it to move mapping, uses last direction if move isn't valid
 function chooseDirection(input) {
-    for (let i = 0; i < moveMapping.length; i++) {
-        if ((input == moveMapping[i][0] || input == moveMapping[i][1]) && (lastDirection != moveMapping[i][4] && lastDirection != moveMapping[i][5])) {
-            lastDirection = input;
-            return [moveMapping[i][2], moveMapping[i][3]];
-        }
+    if (moveMapping.some((move) => (input == move[0] || input == move[1]) && (lastDirection != move[4] && lastDirection != move[5]))) {
+        lastDirection = input;
+        return moveMapping.find((move) => input == move[0] || input == move[1]).slice(2, 4);
     }
     return chooseDirection(lastDirection);
 }
 //combination of all function, first finds the next move, then checks ahead of the move, then updates the field.
 function moveSnake(direction) {
+    if (snakeLength == fieldLength * fieldWidth) {
+        updateField(true);
+        document.getElementById("score").textContent = "You win! Final Score: " + String(snakeLength - 5);
+        return;
+    }
     var move = chooseDirection(direction);
     const currentHead = snakePos[snakeLength - 1];
     const nextHead = [currentHead[0] + move[0], currentHead[1] + move[1]];
@@ -125,15 +141,16 @@ function moveSnake(direction) {
 //starts the game by reseting snakeLength, game over, snake and apple positions, then starts game loop
 function startGame() {
     snakeLength = 5;
+    appleNumber = document.getElementById("appleSelector").value;
     for (let i = 0; i < snakeLength; i++) {
-        snakePos[i] = [2, 6];
+        snakePos.push([2 + i, 6]);
     }
-    applePos[0] = 10;
-    applePos[1] = 6;
-    updateField(false);
     document.getElementById("start").disabled = true;
     currentDirection = 'd';
     lastDirection = 'd';
+    const head = snakePos[snakeLength - 1];
+    generateApples([head[0] + 1, head[1]]);
+    updateField(false);
     gameRunning = setInterval(function () { moveSnake(currentDirection) }, 100);
 }
 
