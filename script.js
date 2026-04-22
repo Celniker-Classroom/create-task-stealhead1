@@ -1,6 +1,8 @@
 // add javascript here
-let fieldWidth = 11;
-let fieldLength = 11;
+//Originally had fieldy and fieldx be fieldwidth and fieldlength, I asked the
+//github copilot ai to replace all instances of the 2nd ones with the 1st ones
+let fieldY = 11;
+let fieldX = 11;
 const snakePos = [];
 const applePos = [];
 let snakeLength;
@@ -11,8 +13,12 @@ var gameRunning;
 let highScore;
 let removed;
 let appleNumber;
+let startTime;
 //maps movement to directions, used later
-const moveMapping = [['w', 'ArrowUp', 0, -1, 's', 'ArrowDown'], ['s', 'ArrowDown', 0, 1, 'w', 'ArrowUp'], ['a', 'ArrowLeft', -1, 0, 'd', 'ArrowRight'], ['d', 'ArrowRight', 1, 0, 'a', 'ArrowLeft']];
+const moveMapping = [['w', 'ArrowUp', 0, -1, 's', 'ArrowDown'],
+['s', 'ArrowDown', 0, 1, 'w', 'ArrowUp'],
+['a', 'ArrowLeft', -1, 0, 'd', 'ArrowRight'],
+['d', 'ArrowRight', 1, 0, 'a', 'ArrowLeft']];
 //gets cell by position to avoid typing long pieces of code
 function getCell(x, y) {
     return document.querySelector('div.cell[position="[' + String(x) + ',' + String(y) + ']"]');
@@ -22,12 +28,12 @@ function generateApples(ahead){
     //checks if all apples have been generates
     while (applePos.length < appleNumber){
         //generates new coordinates
-        let appleX = Math.floor(Math.random() * fieldLength) + 1;
-        let appleY = Math.floor(Math.random() * fieldWidth) + 1;
+        let appleX = Math.floor(Math.random() * fieldX) + 1;
+        let appleY = Math.floor(Math.random() * fieldY) + 1;
         //checks for invalid position, sees if apple is on apple, snake, or ahead
         const onSnake = snakePos.some((pos) => pos[0] == appleX && pos[1] == appleY);
         const onAhead = (ahead[0] == appleX && ahead[1] == appleY);
-        const onApple = applePos.some((pos) => pos[0] == appleX && pos[1] == appleY)
+        const onApple = applePos.some((pos) => pos[0] == appleX && pos[1] == appleY);
         if (!onSnake && !onAhead && !onApple){
             applePos[applePos.length] = [appleX, appleY];
         }
@@ -36,18 +42,18 @@ function generateApples(ahead){
 //ai was used to debug this function when I accidently used i in the j for loop
 function createField() {
     //generates rows and makes them children of field
-    for (let i = 1; i <= fieldWidth; i++) {
+    for (let i = 1; i <= fieldY; i++) {
         const row = document.createElement("div");
         row.id = "row" + String(i);
         row.classList.add("rows");
-        row.style.height = String(100 / fieldWidth) + "%";
+        row.style.height = String(100 / fieldY) + "%";
         document.getElementById("field").appendChild(row);
         //generates cells and makes them children of rows
-        for (let j = 1; j <= fieldLength; j++) {
+        for (let j = 1; j <= fieldX; j++) {
             const cell = document.createElement("div");
             cell.classList.add("cell");
-            cell.id = "cell" + String((i - 1) * fieldLength + j);
-            cell.style.width = String(100 / fieldLength) + "%";
+            cell.id = "cell" + String((i - 1) * fieldX + j);
+            cell.style.width = String(100 / fieldX) + "%";
             row.appendChild(cell);
             //coordinates of the cell are stored as (x,y)
             cell.setAttribute("position", "[" + String(j) + "," + String(i) + "]");
@@ -60,7 +66,7 @@ function createField() {
 function checkAhead(ahead) {
     removed = null;
     //checks if next move makes snake out of bounds, sets gameover if true
-    if (ahead[0] < 1 || ahead[0] > fieldLength || ahead[1] < 1 || ahead[1] > fieldWidth) {
+    if (ahead[0] < 1 || ahead[0] > fieldX || ahead[1] < 1 || ahead[1] > fieldY) {
         updateField(true);
         return;
     }
@@ -99,22 +105,32 @@ function updateField(isGameOver) {
             getCell(removed[0], removed[1]).style.backgroundColor = 'white';
         }
         //loops through each snake position, coloring them green and the head dark green
-        snakePos.forEach((pos) => getCell(pos[0],pos[1]).style.backgroundColor = 'green')
+        snakePos.forEach((pos) => getCell(pos[0],pos[1]).style.backgroundColor = 'green');
         getCell(snakePos[snakeLength - 1][0], snakePos[snakeLength -1][1]).style.backgroundColor = 'darkgreen';
         //colors each apple red
         applePos.forEach((apple) => getCell(apple[0], apple[1]).style.backgroundColor = 'red');
         document.getElementById("score").textContent = "Score: " + String(snakeLength - 5);
-    }
+        let currentTime = Date.now();
+        let elapsedTime = ((currentTime - startTime) / 1000).toFixed(2);
+        document.getElementById("timer").textContent = "Time: " + String(elapsedTime) + " seconds";
+    }   
+    //checks if the game is over
         if (isGameOver) {
+            //stops the game from running
             clearInterval(gameRunning);
-            snakePos.forEach((pos) => getCell(pos[0], pos[1]).style.backgroundColor = 'white')
-            applePos.forEach((pos) => getCell(pos[0], pos[1]).style.backgroundColor = 'white')
+            //all snakes and apples are removed from the field
+            snakePos.forEach((pos) => getCell(pos[0], pos[1]).style.backgroundColor = 'white');
+            applePos.forEach((pos) => getCell(pos[0], pos[1]).style.backgroundColor = 'white');
+            //clears the apple array
             applePos.length = 0;
+            //reneables the start button
             document.getElementById("start").disabled = false;
+            //updates the high score
             if (highScore === undefined || (snakeLength-5) > highScore) {
                 highScore = snakeLength - 5;
                 document.getElementById("highScore").textContent = "High Score: " + String(highScore);
             }
+            //resets the snake array
             snakePos.length = 0;
         }
     }
@@ -128,7 +144,7 @@ function chooseDirection(input) {
 }
 //combination of all function, first finds the next move, then checks ahead of the move, then updates the field.
 function moveSnake(direction) {
-    if (snakeLength == fieldLength * fieldWidth) {
+    if (snakeLength == fieldX * fieldY) {
         updateField(true);
         document.getElementById("score").textContent = "You win! Final Score: " + String(snakeLength - 5);
         return;
@@ -140,14 +156,22 @@ function moveSnake(direction) {
 }
 //starts the game by reseting snakeLength, game over, snake and apple positions, then starts game loop
 function startGame() {
+    //starts timer, sets snake length, then checks for valid apple number
+    startTime = Date.now();
     snakeLength = 5;
     appleNumber = document.getElementById("appleSelector").value;
+    if (appleNumber == '' || appleNumber <= 0 || appleNumber >= fieldX * fieldY - snakeLength){
+        appleNumber = 1;
+    }
+    //generates starting snake position
     for (let i = 0; i < snakeLength; i++) {
         snakePos.push([2 + i, 6]);
     }
+    //disables start button and sets starting direction
     document.getElementById("start").disabled = true;
     currentDirection = 'd';
     lastDirection = 'd';
+    //generates apples in valid positions then dispays the field, then starts game loop
     const head = snakePos[snakeLength - 1];
     generateApples([head[0] + 1, head[1]]);
     updateField(false);
