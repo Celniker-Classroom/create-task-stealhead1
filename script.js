@@ -1,8 +1,7 @@
-// add javascript here
 //Originally had fieldy and fieldx be fieldwidth and fieldlength, I asked the
 //github copilot ai to replace all instances of the 2nd ones with the 1st ones
-let fieldY = 11;
-let fieldX = 11;
+let fieldY;
+let fieldX;
 const snakePos = [];
 const applePos = [];
 let snakeLength;
@@ -19,10 +18,12 @@ const moveMapping = [['w', 'ArrowUp', 0, -1, 's', 'ArrowDown'],
 ['s', 'ArrowDown', 0, 1, 'w', 'ArrowUp'],
 ['a', 'ArrowLeft', -1, 0, 'd', 'ArrowRight'],
 ['d', 'ArrowRight', 1, 0, 'a', 'ArrowLeft']];
+const difficultyMapping = [['easy', 8, 8], ['medium', 13, 13], ['hard', 20, 20]];
 //gets cell by position to avoid typing long pieces of code
 function getCell(x, y) {
     return document.querySelector('div.cell[position="[' + String(x) + ',' + String(y) + ']"]');
 }
+
 //apple generation system to handle multiple apples
 function generateApples(ahead){
     //checks if all apples have been generates
@@ -39,8 +40,11 @@ function generateApples(ahead){
         }
     }
 }
+
 //ai was used to debug this function when I accidently used i in the j for loop
 function createField() {
+    //clears field
+    document.getElementById("field").innerHTML = "";
     //generates rows and makes them children of field
     for (let i = 1; i <= fieldY; i++) {
         const row = document.createElement("div");
@@ -61,6 +65,7 @@ function createField() {
     }
 
 }
+
 //ai used for debugging when the getCell function returned null when wall 
 // and snake checks were one, so syntax error happened
 function checkAhead(ahead) {
@@ -134,6 +139,7 @@ function updateField(isGameOver) {
             snakePos.length = 0;
         }
     }
+
 //checks input and compares it to move mapping, uses last direction if move isn't valid
 function chooseDirection(input) {
     if (moveMapping.some((move) => (input == move[0] || input == move[1]) && (lastDirection != move[4] && lastDirection != move[5]))) {
@@ -142,6 +148,7 @@ function chooseDirection(input) {
     }
     return chooseDirection(lastDirection);
 }
+
 //combination of all function, first finds the next move, then checks ahead of the move, then updates the field.
 function moveSnake(direction) {
     if (snakeLength == fieldX * fieldY) {
@@ -154,9 +161,15 @@ function moveSnake(direction) {
     const nextHead = [currentHead[0] + move[0], currentHead[1] + move[1]];
     checkAhead(nextHead);
 }
+
 //starts the game by reseting snakeLength, game over, snake and apple positions, then starts game loop
 function startGame() {
     //starts timer, sets snake length, then checks for valid apple number
+    let selectedDifficulty = document.querySelector('input[name="difficulty"]:checked').id;
+    let dimensions = difficultyMapping.find((move) => move[0] == selectedDifficulty);
+    fieldX = dimensions[1];
+    fieldY = dimensions[2];
+    createField();
     startTime = Date.now();
     snakeLength = 5;
     appleNumber = document.getElementById("appleSelector").value;
@@ -165,7 +178,7 @@ function startGame() {
     }
     //generates starting snake position
     for (let i = 0; i < snakeLength; i++) {
-        snakePos.push([2 + i, 6]);
+        snakePos.push([1+i, Math.floor(fieldY / 2)]);
     }
     //disables start button and sets starting direction
     document.getElementById("start").disabled = true;
@@ -178,7 +191,7 @@ function startGame() {
     gameRunning = setInterval(function () { moveSnake(currentDirection) }, 100);
 }
 
-//generates the game field when the page is loaded
-createField();
+//sets up event liseners for buttons and controls
+
 document.getElementById("start").addEventListener("click", startGame);
 window.addEventListener('keydown', function (event) { currentDirection = event.key; });
