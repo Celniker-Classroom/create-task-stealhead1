@@ -27,7 +27,7 @@ function getCell(x, y) {
 //apple generation system to handle multiple apples
 function generateApples(ahead){
     //checks if all apples have been generates
-    while (applePos.length < appleNumber){
+    while (applePos.length < appleNumber && applePos.length < (fieldX * fieldY - snakeLength - 1)){
         //generates new coordinates
         let appleX = Math.floor(Math.random() * fieldX) + 1;
         let appleY = Math.floor(Math.random() * fieldY) + 1;
